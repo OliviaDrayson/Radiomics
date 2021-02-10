@@ -7,7 +7,6 @@ Created on Mon Feb  1 19:53:05 2021
 """
 
 import FeatureExtraction as fe
-import MyPyRadiomics as mpr
 
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -28,6 +27,7 @@ import math
 import glob
 
 import os
+import openpyxl
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -38,12 +38,12 @@ class Application(tk.Frame):
         self.canvas = tk.Canvas(self.master, bg ="white", width=650, height=650)
         self.canvas.grid(row = 0, column = 4, rowspan=23, columnspan=6)
         
-        self.BatchLabel = tk.Label(master, text = "--- Batch Mode ---").grid(row=0,columnspan=4)
+        self.BatchLabel = tk.Label(master, text = "----- Batch Mode -----").grid(row=0,columnspan=4)
         
         self.Batch = tk.Button(master, text="Choose Images Folder", command=self.BatchMode)
         self.Batch.grid(row=1,columnspan=4)
         
-        self.IndividualLabel = tk.Label(master, text = "--- Single Mode ---").grid(row=2,columnspan=4)
+        self.IndividualLabel = tk.Label(master, text = "----- Single Mode -----").grid(row=2,columnspan=4)
         
         self.openfile = tk.Button(master, text = "Choose Image Directory", command=self.OpenFile)
         self.openfile.grid(row = 3,columnspan=4)
@@ -111,7 +111,7 @@ class Application(tk.Frame):
         self.FeatureE = tk.Button(master, text = "Feature Extraction", command=self.FeatureExtract)
         self.FeatureE.grid(row=12,column=0, columnspan=4)
         
-        self.OutputLabel = tk.Label(master, text="--- Output ---").grid(row=13,columnspan=4)
+        self.OutputLabel = tk.Label(master, text="----- Output -----").grid(row=13,columnspan=4)
         
         self.OutputDirectory = tk.Button(master, text = "Choose Output Directory", command=self.OutputFolder)
         self.OutputDirectory.grid(row=14, columnspan=4)
@@ -166,8 +166,8 @@ class Application(tk.Frame):
         IMAGE = fe.GetImage(self.IMG3D, self.Chosen)
 
         #RESCALING IMAGE
-        x_factor = 500/IMAGE.shape[0]
-        y_factor = 500/IMAGE.shape[1]
+        x_factor = 650/IMAGE.shape[0]
+        y_factor = 650/IMAGE.shape[1]
         
         if x_factor < y_factor:
             IMAGE = rescale(IMAGE, x_factor, anti_aliasing=False)
@@ -175,8 +175,8 @@ class Application(tk.Frame):
             IMAGE = rescale(IMAGE, y_factor, anti_aliasing=False)
         
         Width, Height = IMAGE.shape
-        x_start = int(round((500 - Width)/2))
-        y_start = int(round((500 - Height)/2))
+        x_start = int(round((650 - Width)/2))
+        y_start = int(round((650 - Height)/2))
         IMAGE = fe.convert(IMAGE, 0, 255, np.uint8)
 
         im = Image.fromarray(IMAGE) #Pillow
@@ -188,9 +188,7 @@ class Application(tk.Frame):
         self.activated = 1
         self.Name = MouseName
         self.Date = StudyDate
-        
-        #self.directory
-    
+            
     def Segment(self):
         
         self.Mask = fe.Segment4(self.IMG3D) #outputs mask
@@ -199,8 +197,8 @@ class Application(tk.Frame):
         IMAGE = fe.GetImage(Segmentation, self.Chosen)
         
         #RESCALING IMAGE
-        x_factor = 500/IMAGE.shape[0]
-        y_factor = 500/IMAGE.shape[1]
+        x_factor = 650/IMAGE.shape[0]
+        y_factor = 650/IMAGE.shape[1]
         
         if x_factor < y_factor:
             IMAGE = rescale(IMAGE, x_factor, anti_aliasing=False)
@@ -208,28 +206,22 @@ class Application(tk.Frame):
             IMAGE = rescale(IMAGE, y_factor, anti_aliasing=False)
         
         Width, Height = IMAGE.shape
-        self.x_start = int(round((500 - Width)/2))
-        self.y_start = int(round((500 - Height)/2))
+        self.x_start = int(round((650 - Width)/2))
+        self.y_start = int(round((650 - Height)/2))
         IMAGE = fe.convert(IMAGE, 0, 255, np.uint8)
 
         im = Image.fromarray(IMAGE) #Pillow
                 
         self.img = ImageTk.PhotoImage(image=im)
         self.image_on_canvas = self.canvas.create_image(self.y_start, self.x_start, anchor=tk.NW, image=self.img)
-        
+    
         self.View["state"] = "normal"
         self.FeatureE["state"] = "normal"
-        self.FirstOrder["state"] = "normal"
-        self.Glcm["state"] = "normal"
-        self.Shape["state"] = "normal"
-        self.Glrlm["state"] = "normal"
-        self.Glszm["state"] = "normal"
-        self.Wavelet["state"] = "normal"
     
     def Viewer(self):
         mesh = fe.MeshGeneration(self.Mask)     
         
-        figure = Figure(figsize=(8, 8))
+        figure = Figure(figsize=(9, 9))
         ax= figure.add_subplot(1, 1, 1, projection='3d')
 
         ax.add_collection3d(mesh)
@@ -246,7 +238,7 @@ class Application(tk.Frame):
         
         self.Canvas = FigureCanvasTkAgg(figure, self.master)
         
-        self.Canvas.get_tk_widget().grid(row=0,column=4,rowspan=12, columnspan=6)
+        self.Canvas.get_tk_widget().grid(row=0,column=4,rowspan=23, columnspan=6)
         
         self.Canvas.mpl_connect('button_press_event', ax._button_press)
         self.Canvas.mpl_connect('button_release_event', ax._button_release)
@@ -287,7 +279,7 @@ class Application(tk.Frame):
         FeatureVector, df = fe.Radiomics(Image, Mask, CHECK_BOX)
         
         if self.make_excel.get() == 1:        
-            if self.out_directory.get() == 'a':
+            if self.out_directory == 'a':
             
                 file = "output.xlsx"
                 df.to_excel(file)  
@@ -315,19 +307,28 @@ class Application(tk.Frame):
             
             else:   
             
-                print('adding to existing excel file')
+                print('Adding to existing excel file')
                 
-                old_df = pd.read_excel(self.excel_file, index_col=0) 
+                #old_df = pd.read_excel(self.excel_file, index_col=0) 
+                old_df = openpyxl.load_workbook(self.excel_file)
+                
+                old_df = old_df['Sheet1']
+                
+                data = old_df.values
+                columns = next(data)[0:]
+                
+                old_df = pd.DataFrame(data,columns=columns)
+                
+                old_df.drop(old_df.columns[[0]], axis=1, inplace=True)
+                
                 ID = self.Name                
                 
                 new_file = fe.ExcelFile(df, old_df, ID, self.Date)
                 
                 new_file.to_excel(self.excel_file) 
     
+        print('--END OF SINGLE RUN--')
     
-        print(df.head())
-        print("output saved to " + file)
-
     def BatchMode(self):
         
         bdirectory = fd.askdirectory()
