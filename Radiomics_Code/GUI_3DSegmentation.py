@@ -35,6 +35,9 @@ class Application(tk.Frame):
         self.master = master
         master.title("3D Segmentation and Feature Extraction")
         
+        self.Quit = tk.Button(master, text="QUIT", command=self.QUIT).grid(row=23, column=9, sticky='E')
+        self.Name = tk.Label(master, text="Made by @OliviaDrayson : email drayson.o@mac.com").grid(row=23,column=8, sticky='E')
+        
         self.canvas = tk.Canvas(self.master, bg ="white", width=650, height=650)
         self.canvas.grid(row = 0, column = 4, rowspan=23, columnspan=6)
         
@@ -266,6 +269,8 @@ class Application(tk.Frame):
         
     def FeatureExtract(self):
         
+        print("--STARTING SINGLE RUN--")
+        
         print("Calculating Features...")
     
         self.Mask = self.Mask.astype(int)
@@ -331,6 +336,8 @@ class Application(tk.Frame):
     
     def BatchMode(self):
         
+        print("--STARTING BATCH RUN--")
+        
         bdirectory = fd.askdirectory()
         bdir = str(bdirectory) + "/*"
         bdir2 = str(bdirectory) + "/"
@@ -363,7 +370,7 @@ class Application(tk.Frame):
             #CHECK BOX
             CHECK_BOX = [self.firstorder.get(), self.glcm.get(), self.shape.get(), self.glrlm.get(), self.glszm.get(), self.wavelet.get()]
             
-            FeatureVector, df = mpr.Radiomics(Image, Mask, CHECK_BOX)
+            FeatureVector, df = fe.Radiomics(Image, Mask, CHECK_BOX)
             
             if self.many_excel.get() == 1:
                 
@@ -424,6 +431,9 @@ class Application(tk.Frame):
         
         self.loading.set("Saving to " + self.out_directory)
     
+    def QUIT(self):
+        
+        master.destroy()
     
 master = tk.Tk()
 

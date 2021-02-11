@@ -318,7 +318,8 @@ def Viewer(Mask, folder_name):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
 
-    plt.show()
+    fname = title + ".png"
+    plt.savefig(fname)
     
 def Segment4(img3dR):
     
