@@ -22,6 +22,8 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
 
+import matplotlib as plt
+
 import SimpleITK as sitk
 import math
 import glob
@@ -29,26 +31,44 @@ import glob
 import os
 import openpyxl
 
+import scipy
+from scipy import ndimage
+
+from skimage import measure
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master = master
         master.title("3D Segmentation and Feature Extraction")
         
-        self.Quit = tk.Button(master, text="QUIT", command=self.QUIT).grid(row=23, column=9, sticky='E')
-        self.Name = tk.Label(master, text="Made by @OliviaDrayson : email drayson.o@mac.com").grid(row=23,column=8, sticky='E')
+        #FRAMES
         
-        self.canvas = tk.Canvas(self.master, bg ="white", width=650, height=650)
+        style = 'sunken'
+        
+        self.BFrame = tk.LabelFrame(master, width = 400, height = 60, relief=style).grid(row=0, rowspan=2, columnspan=4)
+        self.SFrame = tk.LabelFrame(master, width = 400, height = 180, relief=style).grid(row=2, rowspan=6, columnspan=4)
+        self.RFrame = tk.LabelFrame(master, width = 400, height = 150, relief=style).grid(row=8, rowspan=5, columnspan=4)
+        self.OFrame = tk.LabelFrame(master, width = 400, height = 280, relief=style).grid(row=13, rowspan=10, columnspan=4)
+        self.CFrame = tk.LabelFrame(master, width = 670, height = 670, relief=style).grid(row=0, rowspan=23, column=4, columnspan=6)
+        
+        #CONTENT
+        
+        self.Quit = tk.Button(master, text="QUIT", command=self.QUIT).grid(row=23, column=9, sticky='E')
+        self.Name = tk.Label(master, text="Made by @OliviaDrayson : drayson.o@mac.com").grid(row=23,column=8, sticky='E')
+        
+        self.canvas = tk.Canvas(self.CFrame, bg ="white", width=650, height=650)
         self.canvas.grid(row = 0, column = 4, rowspan=23, columnspan=6)
         
-        self.BatchLabel = tk.Label(master, text = "----- Batch Mode -----").grid(row=0,columnspan=4)
+        self.BatchLabel = tk.Label(self.BFrame, text = "Batch Mode").grid(row=0,columnspan=4)
         
-        self.Batch = tk.Button(master, text="Choose Images Folder", command=self.BatchMode)
+        self.Batch = tk.Button(self.BFrame, text="Choose Images Folder", command=self.BatchMode)
         self.Batch.grid(row=1,columnspan=4)
         
-        self.IndividualLabel = tk.Label(master, text = "----- Single Mode -----").grid(row=2,columnspan=4)
+        self.IndividualLabel = tk.Label(self.SFrame, text = "Single Mode").grid(row=2,columnspan=4)
         
-        self.openfile = tk.Button(master, text = "Choose Image Directory", command=self.OpenFile)
+        self.openfile = tk.Button(self.SFrame, text = "Choose Image Directory", command=self.OpenFile)
         self.openfile.grid(row = 3,columnspan=4)
         
         self.prompt = StringVar()
@@ -57,90 +77,88 @@ class Application(tk.Frame):
         self.prompt2 = StringVar()
         self.prompt2.set("Date:")
         
-        self.label = tk.Label(master, textvariable=self.prompt)
-        self.label.grid(row = 4, column=0, columnspan=4, sticky='W')
+        self.label = tk.Label(self.SFrame, textvariable=self.prompt)
+        self.label.grid(row = 4, column=0, columnspan=4)
         
-        self.label2 = tk.Label(master, textvariable=self.prompt2)
-        self.label2.grid(row = 5, column=0, columnspan=4, sticky='W')
+        self.label2 = tk.Label(self.SFrame, textvariable=self.prompt2)
+        self.label2.grid(row = 5, column=0, columnspan=4)
         
-        self.segment = tk.Button(master, text ="3D Segmentation", command=self.Segment)
+        self.segment = tk.Button(self.SFrame, text ="3D Segmentation", command=self.Segment)
         self.segment.grid(row=6, column=0, columnspan=2)
         
-        self.View = tk.Button(master, text = "3D View", command=self.Viewer)
+        self.View = tk.Button(self.SFrame, text = "3D View", command=self.Viewer)
         self.View.grid(row=6,column=2, columnspan=2)
         
-        self.LabelFE = tk.Label(master, text = "Radiomic Feature Customisation:")
-        self.LabelFE.grid(row=7,column=0, columnspan=4)
+        self.FeatureE = tk.Button(self.SFrame, text = "Feature Extraction", command=self.FeatureExtract)
+        self.FeatureE.grid(row=7,column=0, columnspan=4)
         
-        #Feature Extraction Section
+        self.LabelFE = tk.Label(self.RFrame, text = "Radiomic Feature Customisation")
+        self.LabelFE.grid(row=8,column=0, columnspan=4)
         
         self.firstorder = IntVar()
         self.firstorder.set(1)
-        self.FirstOrder = tk.Checkbutton(master, text = "First Order", variable=self.firstorder)
-        self.FirstOrder.grid(row=8, column=0,columnspan=2, sticky='W')
+        self.FirstOrder = tk.Checkbutton(self.RFrame, text = "First Order", variable=self.firstorder)
+        self.FirstOrder.grid(row=9, column=1, sticky='W')
         
         self.glcm = IntVar()
         self.glcm.set(1)
-        self.Glcm = tk.Checkbutton(master, text = "GLCM", variable=self.glcm)
-        self.Glcm.grid(row=8, column=2,columnspan=2, sticky='W')
+        self.Glcm = tk.Checkbutton(self.RFrame, text = "GLCM", variable=self.glcm)
+        self.Glcm.grid(row=9, column=2, sticky='W')
         
         self.shape = IntVar()
         self.shape.set(1)
-        self.Shape = tk.Checkbutton(master, text = "Shape", variable=self.shape)
-        self.Shape.grid(row=9, column=0, columnspan=2, sticky='W')
+        self.Shape = tk.Checkbutton(self.RFrame, text = "Shape", variable=self.shape)
+        self.Shape.grid(row=10, column=1, sticky='W')
         
         self.glrlm = IntVar()
         self.glrlm.set(1)
-        self.Glrlm = tk.Checkbutton(master, text = "GLRLM", variable=self.glrlm)
-        self.Glrlm.grid(row=9, column=2, columnspan=2, sticky='W')
+        self.Glrlm = tk.Checkbutton(self.RFrame, text = "GLRLM", variable=self.glrlm)
+        self.Glrlm.grid(row=10, column=2, sticky='W')
         
         self.glszm = IntVar()
         self.glszm.set(1)
-        self.Glszm = tk.Checkbutton(master, text = "GLSZM", variable=self.glszm)
-        self.Glszm.grid(row=10, column=0, columnspan=2, sticky='W')
+        self.Glszm = tk.Checkbutton(self.RFrame, text = "GLSZM", variable=self.glszm)
+        self.Glszm.grid(row=11, column=1, sticky='W')
         
         self.wavelet = IntVar()
         self.wavelet.set(1)
-        self.Wavelet = tk.Checkbutton(master, text = "Wavelet Filtering", variable=self.wavelet)
-        self.Wavelet.grid(row=10, column=2, columnspan=2, sticky='W')
+        self.Wavelet = tk.Checkbutton(self.RFrame, text = "Wavelet", variable=self.wavelet)
+        self.Wavelet.grid(row=11, column=2, sticky='W')
         
-        self.Estimate = tk.Button(master, text = "Estimate extraction time", command = self.Estimation)
-        self.Estimate.grid(row=11, column=0, columnspan=2, sticky = 'W')
+        self.Estimate = tk.Button(self.RFrame, text = "Estimate extraction time", command = self.Estimation)
+        self.Estimate.grid(row=12, column=0, columnspan=2)
         
         self.time = StringVar()
         self.time.set("- mins -- secs")
-        self.Time = tk.Label(master, textvariable = self.time).grid(row=11, column=2, columnspan=2, sticky = 'W')
+        self.Time = tk.Label(self.RFrame, textvariable = self.time).grid(row=12, column=2, columnspan=2, sticky = 'W')
         
-        self.FeatureE = tk.Button(master, text = "Feature Extraction", command=self.FeatureExtract)
-        self.FeatureE.grid(row=12,column=0, columnspan=4)
+        self.OutputLabel = tk.Label(self.OFrame, text="Output").grid(row=13, columnspan=4)
         
-        self.OutputLabel = tk.Label(master, text="----- Output -----").grid(row=13,columnspan=4)
-        
-        self.OutputDirectory = tk.Button(master, text = "Choose Output Directory", command=self.OutputFolder)
+        self.OutputDirectory = tk.Button(self.OFrame, text = "Choose Output Directory", command=self.OutputFolder)
         self.OutputDirectory.grid(row=14, columnspan=4)
         
-        self.OUT = tk.Button(master, text = "Choose Output File", command = self.OutputFile)
-        self.OUT.grid(row=15, columnspan=4)
-        
-        self.Single = tk.Label(master, text="Single Mode Only:").grid(row=16,columnspan=4)
-        
-        self.make_excel = IntVar()
-        self.Make_Excel = tk.Checkbutton(master, text = "Create New Excel File", variable=self.make_excel)
-        self.Make_Excel.grid(row=17, sticky='W')
-        
-        self.add_excel = IntVar()
-        self.Add_Excel = tk.Checkbutton(master, text = "Add to Existing Excel File", variable=self.add_excel)
-        self.Add_Excel.grid(row=18, sticky='W')
-        
-        self.Batch = tk.Label(master, text="Batch Mode Only:").grid(row=19,columnspan=4)
+        self.Batch = tk.Label(self.OFrame, text="Batch Mode Only:").grid(row=15,columnspan=4)
         
         self.many_excel = IntVar()
-        self.Many_Excel = tk.Checkbutton(master, text = "Create File For Each Segmentation", variable=self.many_excel)
-        self.Many_Excel.grid(row=20, sticky='W')
+        self.Many_Excel = tk.Checkbutton(self.OFrame, text = "Create File For Each Segmentation", variable=self.many_excel)
+        self.Many_Excel.grid(row=16, column=1, columnspan=3, sticky='W')
         
         self.one_excel = IntVar()
-        self.One_Excel = tk.Checkbutton(master, text = "Create One Combined File", variable=self.one_excel)
-        self.One_Excel.grid(row=21, sticky='W')
+        self.One_Excel = tk.Checkbutton(self.OFrame, text = "Create One Combined File", variable=self.one_excel)
+        self.One_Excel.grid(row=17, column=1, columnspan=3, sticky='W')
+        
+        self.Single = tk.Label(self.OFrame, text="Single Mode Only:").grid(row=18,columnspan=4)
+        
+        self.make_excel = IntVar()
+        self.Make_Excel = tk.Checkbutton(self.OFrame, text = "Create New Excel File", variable=self.make_excel)
+        self.Make_Excel.grid(row=19, column=1, columnspan=3, sticky='W')
+        
+        self.add_excel = IntVar()
+        self.Add_Excel = tk.Checkbutton(self.OFrame, text = "Add to Existing Excel File", variable=self.add_excel)
+        self.Add_Excel.grid(row=20, column=1, columnspan=3, sticky='W')
+        
+        self.OUT = tk.Button(self.OFrame, text = "Choose Output File", command = self.OutputFile)
+        self.OUT.grid(row=21, columnspan=4)
     
         self.loading = StringVar()
         self.loading.set("")
@@ -335,9 +353,7 @@ class Application(tk.Frame):
         print('--END OF SINGLE RUN--')
     
     def BatchMode(self):
-        
-        print("--STARTING BATCH RUN--")
-        
+    
         bdirectory = fd.askdirectory()
         bdir = str(bdirectory) + "/*"
         bdir2 = str(bdirectory) + "/"
@@ -348,6 +364,9 @@ class Application(tk.Frame):
         counter = 0
         
         folders = glob.glob(bdir)
+        folders = sorted(folders)
+        
+        print("--STARTING BATCH RUN--")
         
         for folder in folders:
         
@@ -358,7 +377,7 @@ class Application(tk.Frame):
             
             Mask = fe.Segment4(IMAGE) #outputs mask
             
-            fe.Viewer(Mask, folder_name)
+            fe.Viewer(Mask, folder_name, self.out_directory)
                 
             print("Calculating Features for: " + folder_name)
     
@@ -398,17 +417,17 @@ class Application(tk.Frame):
             
             counter += 1
 
-        if self.one_excel.get() == 1:
-            
-            one_file = "Extraction_Output.xlsx"
-            
-            if self.out_directory != 0:
-                one_file = os.path.join(self.out_directory, one_file)
+            if self.one_excel.get() == 1:
                 
-            Data_Frame.to_excel(one_file) 
+                one_file = "Extraction_Output.xlsx"
+            
+                if self.out_directory != 0:
+                    one_file = os.path.join(self.out_directory, one_file)
+                
+                Data_Frame.to_excel(one_file) 
         
-            print("All Image Features have been saved to " + one_file)
-            print("Saved to directory: " + self.out_directory)
+                print("All Image Features have been saved to " + one_file)
+                print("Saved to directory: " + self.out_directory)
             
         if self.many_excel.get() == 1:
             
@@ -416,9 +435,6 @@ class Application(tk.Frame):
             
         print('--END OF BATCH RUN--')
         
-        #self.loading.set("Run Complete! Saved as: " + file)
-        #self.Out.set("Saved to directory: " + self.out_directory)
-    
     def OutputFile(self):
         
         self.excel_file = fd.askopenfilename()

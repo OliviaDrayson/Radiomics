@@ -293,7 +293,7 @@ def Segment2(img3dR):
 
     return Segmented
   
-def Viewer(Mask, folder_name):
+def Viewer(Mask, folder_name, directory):
     
     Mask = scipy.ndimage.interpolation.rotate(Mask,270, axes=(2,1))
     
@@ -301,7 +301,7 @@ def Viewer(Mask, folder_name):
 
     p = Mask
     
-    fig = plt.figure(figsize=(5, 5))
+    fig = plt.figure(figsize=(9, 9))
     ax = fig.add_subplot(111, projection='3d')
     
     title = "Segmented Lungs of " + folder_name + " in 3D"
@@ -318,8 +318,10 @@ def Viewer(Mask, folder_name):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
 
-    fname = title + ".png"
+    fname = directory + "/" + title + ".png"
     plt.savefig(fname)
+    
+    return fig
     
 def Segment4(img3dR):
     
