@@ -24,6 +24,7 @@ from skimage.morphology import erosion, dilation, remove_small_objects #closing
 from skimage.segmentation import clear_border
 from skimage import measure
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import statistics as stats
 
 def DICOM(directory):
     # Converts DICOM image to a 3D array in the coronal plane
@@ -181,10 +182,12 @@ def Segment4(img3dR):
     Axial = img3dR.transpose(1,0,2)
     
     Segmented = []
+    Largest = []
+    Shifted = 0
     
     for im in Axial:   
-        
-        binary = (im < 0) & (im > -900)
+                
+        binary = (im < -200) & (im > -900)
         cleared = clear_border(binary)
         label_image = label(cleared)
         
@@ -200,6 +203,8 @@ def Segment4(img3dR):
                 if region.area < areas[-n] or region.area < 300:
                     for coordinates in region.coords:                
                         label_image[coordinates[0], coordinates[1]] = 0
+                if region.area == max(areas):
+                    Largest.append(region.centroid[1])
                         
         im = label_image > 0
         
@@ -212,8 +217,12 @@ def Segment4(img3dR):
     
         def modulus(centre):
             
-            x = centre[0] - (im.shape[0]/2)
-            y = centre[1] - (im.shape[1]/2)
+            if Shifted == 0:
+                x = centre[0] - (im.shape[0]/2)
+                y = centre[1] - (im.shape[1]/2)
+            else:
+                x = centre[0] - (im.shape[0]/2)
+                y = centre[1] - Shifted
         
             mod = x**2 + y**2
             mod = mod**0.5
@@ -226,7 +235,8 @@ def Segment4(img3dR):
             centre = region.centroid
             mod = modulus(centre)
             
-            length = max(im.shape)/3 #inner 2/3 of the image
+            #length = 3*max(im.shape)/8 #inner 3/4 of the image
+            length = max(im.shape) #inner 3/4 of the image
             
             if len(mods) > 1:
                 if mod > length or mod > 1.5*mods[1]:
@@ -243,6 +253,10 @@ def Segment4(img3dR):
     Segmented = np.stack([s for s in Segmented])
     
     Coronal = Segmented.transpose(1,0,2) #back to coronal
+    
+    Largest = round(stats.mean(Largest))
+    Shifted = Largest
+    
     Segmented = []
     
     for im in Coronal:
@@ -255,7 +269,7 @@ def Segment4(img3dR):
             centre = region.centroid
             mod = modulus(centre)
             
-            length = 3*max(im.shape)/8 #inner three quarters of the image
+            length = max(im.shape)/3 #inner two thirds of the image
         
             if len(mods) > 1:
                 if mod > length or mod > 1.5*mods[1]:

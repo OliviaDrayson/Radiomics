@@ -151,14 +151,14 @@ class Application(tk.Frame):
         
         self.loading = StringVar()
         self.loading.set("Output Directory:")
-        self.Loading = tk.Label(master, textvariable = self.loading).grid(row=18,columnspan=4)
+        self.Loading = tk.Label(master, textvariable = self.loading, fg ="blue").grid(row=18,columnspan=4)
         
         self.OUT = tk.Button(self.OFrame, text = "Choose Output File", command = self.OutputFile)
         self.OUT.grid(row=19, columnspan=4)
         
         self.L_outfile = StringVar()
         self.L_outfile.set("Add to File:")
-        self.L_OutFile = tk.Label(master, textvariable = self.L_outfile).grid(row=20,columnspan=4)
+        self.L_OutFile = tk.Label(master, textvariable = self.L_outfile, fg = "blue").grid(row=20,columnspan=4)
         
         #Disable inactive buttons
         self.activated = 0
@@ -389,7 +389,7 @@ class Application(tk.Frame):
             
             if self.many_excel.get() == 1:
                 
-                file = str(folder_name + StudyDate + "_output.xlsx")
+                file = str(folder_name + "_" + StudyDate + "_output.xlsx")
                 file = os.path.join(self.out_directory, file)
                 df.to_excel(file)
                 print("Features have been saved to " + file)
@@ -466,8 +466,8 @@ class Application(tk.Frame):
         
         xdir = str(self.excel_file)
         
-        if len(xdir) > 40:
-            xdir = xdir[-40:]
+        if len(xdir) > 35:
+            xdir = xdir[-35:]
                 
         self.L_outfile.set("Add to File: ... " + xdir)
         
@@ -476,8 +476,8 @@ class Application(tk.Frame):
         self.out_directory = fd.askdirectory()
         pdir = str(self.out_directory)
         
-        if len(pdir) > 40:
-            pdir = pdir[-40:]
+        if len(pdir) > 35:
+            pdir = pdir[-35:]
         
         self.loading.set("Output Directory:  ... " + pdir)
     
