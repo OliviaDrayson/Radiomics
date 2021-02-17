@@ -84,89 +84,6 @@ def GetImage(img3dR, slice_no):
     IMAGE = normalize(IMAGE)
     IMAGE = convert(IMAGE, 0, 255, np.uint8)
     return IMAGE
-
-def Segment(img3dR):
-    
-    #Make binary and threshold
-    binary = (img3dR < -200) & (img3dR > -900)
-    
-    def segment(image,axis='none'):
-    
-        cleared = clear_border(image, buffer_size=0)
-        label_image = label(cleared)
-    
-        #Keeping only 2 largest areas
-        areas = [r.area for r in regionprops(label_image)]
-        areas.sort()
-        n = 2
-        if len(areas) > n:
-            for region in regionprops(label_image):
-                if region.area < areas[-n]:
-                    for coordinates in region.coords:                
-                            label_image[coordinates[0], coordinates[1]] = 0
-                            
-        segment_slice = label_image > 0
-        return segment_slice
-    
-    # Making a mask for each orientation
-    coronal = []
-
-    for image in binary:
-        image = segment(image,'coronal')
-        coronal.append(image)
-
-    CoronalImage = np.stack([s for s in coronal])
-    
-    sagittal = []
-    Sagittal = binary.transpose(2,1,0)
-
-    for image in Sagittal:
-        image = segment(image,'sagittal')
-        sagittal.append(image)
-
-    SagittalImage = np.stack([s for s in sagittal])
-    
-    axial = []
-    Axial = binary.transpose(1,0,2)
-
-    for image in Axial:
-        image = segment(image,'axial')
-        axial.append(image)
-
-    AxialImage = np.stack([s for s in axial])
-    
-    #Keep Largest Volume----------------------------------------------------------
-
-    def largest_vol(Image):
-        label_3D_image = label(Image)
-        regions = regionprops(label_3D_image)
-        areas = []
-
-        for region in regions:
-            areas.append(region.area)
-
-        for region in regions:
-            if region.area < max(areas):
-                for coordinates in region.coords:                
-                    label_3D_image[coordinates[0], coordinates[1]] = 0
-            else:
-                centre = region.centroid
-    
-        largest = label_3D_image > 0
-        return largest, centre
-    
-    # Keeping the largest for each orientation
-    largest_cor, centre = largest_vol(CoronalImage)
-    largest_ax = largest_vol(AxialImage)[0]
-    largest_sag = largest_vol(SagittalImage)[0]
-
-    #Combining
-    Lungs = (largest_cor) + (largest_sag.transpose(2,1,0)) + (largest_ax.transpose(1,0,2))
-    
-    #Combining binary mask with real image
-    Real_Lungs = Lungs * img3dR
-
-    return Real_Lungs
     
 def SliceChoice(img3dR):
     
@@ -228,71 +145,6 @@ def SliceChoice(img3dR):
     Chosen = min(SLICES)
     return Chosen
 
-def Segment2(img3dR):
-        
-    #Make binary and threshold
-    binary = (img3dR < -200) & (img3dR > -900)
-    Axial = binary.transpose(1,0,2)
-    
-    Segmented = []
-    
-    #remove outer 15%
-    x_area = 0.85*Axial.shape[0] 
-    y_area = 0.85*Axial.shape[1]
-        
-    x_buffer = Axial.shape[0] - x_area
-    y_buffer = Axial.shape[1] - y_area
-        
-    buffer = round((x_buffer + y_buffer)/2)
-    
-    for im in Axial:   
-        
-        cleared = clear_border(im)
-        label_image = label(cleared)
-        
-        regions = regionprops(label_image)
-        
-        #remove largest bounding box
-        majorA = [r.major_axis_length for r in regions]
-        
-        #Keeping only 2 largest areas
-        areas = [r.area for r in regions]
-        areas.sort()
-        n = 3 #keeping top 3
-
-        if len(areas) > n:
-            for region in regionprops(label_image):
-                if region.area < areas[-n]:
-                    for coordinates in region.coords:                
-                        label_image[coordinates[0], coordinates[1]] = 0
-
-        segment_slice = label_image > 0
-        Segmented.append(segment_slice)
-
-    Segmented = np.stack([s for s in Segmented])
-    
-    Segmented = Segmented.transpose(1,0,2) #back to coronal
-    
-    #3D Largest Volume
-    label_3D_image = label(Segmented)
-    regions = regionprops(label_3D_image)
-        
-    areas = [r.area for r in regions]
-        
-    """for region in regions:
-        if region.area < 0.5*max(areas): #if less than 50% of largest vol
-            for coordinates in region.coords:                
-                label_3D_image[coordinates[0], coordinates[1]] = 0
-        else:
-            centre = region.centroid"""
-    
-    Segmented = label_3D_image > 0
-    Segmented = ndimage.binary_fill_holes(Segmented)
-    Segmented = ndimage.binary_opening(Segmented)
-    Segmented = ndimage.binary_closing(Segmented)
-
-    return Segmented
-  
 def Viewer(Mask, folder_name, directory):
     
     Mask = scipy.ndimage.interpolation.rotate(Mask,270, axes=(2,1))
@@ -326,14 +178,14 @@ def Viewer(Mask, folder_name, directory):
 def Segment4(img3dR):
     
     #Make binary and threshold
-    binary = (img3dR < -200) & (img3dR > -900)
-    Axial = binary.transpose(1,0,2)
+    Axial = img3dR.transpose(1,0,2)
     
     Segmented = []
     
     for im in Axial:   
         
-        cleared = clear_border(im)
+        binary = (im < 0) & (im > -900)
+        cleared = clear_border(binary)
         label_image = label(cleared)
         
         regions = regionprops(label_image)
@@ -341,11 +193,11 @@ def Segment4(img3dR):
         #Keeping only n largest areas
         areas = [r.area for r in regions]
         areas.sort()
-        n = 3 #keeping top n
+        n = 2 #keeping top n
 
         if len(areas) > n:
             for region in regionprops(label_image):
-                if region.area < areas[-n] or region.area < 100:
+                if region.area < areas[-n] or region.area < 300:
                     for coordinates in region.coords:                
                         label_image[coordinates[0], coordinates[1]] = 0
                         
@@ -355,47 +207,74 @@ def Segment4(img3dR):
         regions = regionprops(label_image)
         
         #now only keeping central objects
-        
-        for region in regions:
-            X = region.centroid[1]
-            Y = region.centroid[0]
-            x = X - im.shape[1]/2
-            y = Y - im.shape[0]/2
-            mod = x**2 + y**2
-            if mod > 5000:
-                for coordinates in region.coords:                
-                        label_image[coordinates[0], coordinates[1]] = 0
-                
-        segment_slice = label_image > 0
-        Segmented.append(segment_slice)
-
-    Segmented = np.stack([s for s in Segmented])
+                 
+        centres = [r.centroid for r in regions]
     
-    #largest vol - sagittal
+        def modulus(centre):
+            
+            x = centre[0] - (im.shape[0]/2)
+            y = centre[1] - (im.shape[1]/2)
+        
+            mod = x**2 + y**2
+            mod = mod**0.5
+            return mod
+
+        mods = [modulus(c) for c in centres]
+        mods.sort()
+
+        for region in regions:
+            centre = region.centroid
+            mod = modulus(centre)
+            
+            length = max(im.shape)/3 #inner 2/3 of the image
+            
+            if len(mods) > 1:
+                if mod > length or mod > 1.5*mods[1]:
+                    for coordinates in region.coords:                
+                        label_image[coordinates[0], coordinates[1]] = 0
+            else:
+                if mod > length:
+                     for coordinates in region.coords:                
+                        label_image[coordinates[0], coordinates[1]] = 0
+                    
+        im = label_image > 0
+        Segmented.append(im)
+        
+    Segmented = np.stack([s for s in Segmented])
     
     Coronal = Segmented.transpose(1,0,2) #back to coronal
     Segmented = []
     
     for im in Coronal:
         
+        im = clear_border(im)
         label_image = label(im)
         regions = regionprops(label_image)
         
         for region in regions:
-                if len(areas)>2:
-                    if region.area < areas[-2] or region.area < 500:
-                        for coordinates in region.coords:                
-                            label_image[coordinates[0], coordinates[1]] = 0
+            centre = region.centroid
+            mod = modulus(centre)
+            
+            length = 3*max(im.shape)/8 #inner three quarters of the image
+        
+            if len(mods) > 1:
+                if mod > length or mod > 1.5*mods[1]:
+                    for coordinates in region.coords:                
+                        label_image[coordinates[0], coordinates[1]] = 0
+            else:
+                if mod > length:
+                     for coordinates in region.coords:                
+                        label_image[coordinates[0], coordinates[1]] = 0
 
         im = label_image > 0
         Segmented.append(im)
         
     Segmented = np.stack([s for s in Segmented])
     
+    Segmented = ndimage.binary_erosion(Segmented, iterations=5)
     Segmented = ndimage.binary_fill_holes(Segmented)
-    Segmented = ndimage.binary_opening(Segmented)
-    Segmented = ndimage.binary_closing(Segmented)
-
+    Segmented = ndimage.binary_dilation(Segmented, iterations=5)
+    
     return Segmented
 
 def MeshGeneration(Image):

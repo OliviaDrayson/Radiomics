@@ -61,7 +61,7 @@ class Application(tk.Frame):
         self.canvas = tk.Canvas(self.CFrame, bg ="white", width=650, height=650)
         self.canvas.grid(row = 0, column = 4, rowspan=23, columnspan=6)
         
-        self.BatchLabel = tk.Label(self.BFrame, text = "Batch Mode").grid(row=0,columnspan=4)
+        self.BatchLabel = tk.Label(self.BFrame, text = "Batch Mode", font=('bold')).grid(row=0,columnspan=4)
         
         self.Batch = tk.Button(self.BFrame, text="Choose Images Folder", command=self.BatchMode)
         self.Batch.grid(row=1,columnspan=4)
@@ -133,36 +133,32 @@ class Application(tk.Frame):
         self.Time = tk.Label(self.RFrame, textvariable = self.time).grid(row=12, column=2, columnspan=2, sticky = 'W')
         
         self.OutputLabel = tk.Label(self.OFrame, text="Output").grid(row=13, columnspan=4)
-        
-        self.OutputDirectory = tk.Button(self.OFrame, text = "Choose Output Directory", command=self.OutputFolder)
-        self.OutputDirectory.grid(row=14, columnspan=4)
-        
-        self.Batch = tk.Label(self.OFrame, text="Batch Mode Only:").grid(row=15,columnspan=4)
-        
+                
         self.many_excel = IntVar()
-        self.Many_Excel = tk.Checkbutton(self.OFrame, text = "Create File For Each Segmentation", variable=self.many_excel)
-        self.Many_Excel.grid(row=16, column=1, columnspan=3, sticky='W')
+        self.Many_Excel = tk.Checkbutton(self.OFrame, text = "Save to Separate Excel File(s)", variable=self.many_excel)
+        self.Many_Excel.grid(row=14, column=1, columnspan=3, sticky='W')
         
         self.one_excel = IntVar()
-        self.One_Excel = tk.Checkbutton(self.OFrame, text = "Create One Combined File", variable=self.one_excel)
-        self.One_Excel.grid(row=17, column=1, columnspan=3, sticky='W')
-        
-        self.Single = tk.Label(self.OFrame, text="Single Mode Only:").grid(row=18,columnspan=4)
-        
-        self.make_excel = IntVar()
-        self.Make_Excel = tk.Checkbutton(self.OFrame, text = "Create New Excel File", variable=self.make_excel)
-        self.Make_Excel.grid(row=19, column=1, columnspan=3, sticky='W')
+        self.One_Excel = tk.Checkbutton(self.OFrame, text = "Create One Combined Excel File", variable=self.one_excel)
+        self.One_Excel.grid(row=15, column=1, columnspan=3, sticky='W')
         
         self.add_excel = IntVar()
-        self.Add_Excel = tk.Checkbutton(self.OFrame, text = "Add to Existing Excel File", variable=self.add_excel)
-        self.Add_Excel.grid(row=20, column=1, columnspan=3, sticky='W')
+        self.Add_Excel = tk.Checkbutton(self.OFrame, text = "Add to Existing Excel File (select file below)", variable=self.add_excel)
+        self.Add_Excel.grid(row=16, column=1, columnspan=3, sticky='W')
+        
+        self.OutputDirectory = tk.Button(self.OFrame, text = "Choose Output Directory", command=self.OutputFolder)
+        self.OutputDirectory.grid(row=17, columnspan=4)
+        
+        self.loading = StringVar()
+        self.loading.set("Output Directory:")
+        self.Loading = tk.Label(master, textvariable = self.loading).grid(row=18,columnspan=4)
         
         self.OUT = tk.Button(self.OFrame, text = "Choose Output File", command = self.OutputFile)
-        self.OUT.grid(row=21, columnspan=4)
-    
-        self.loading = StringVar()
-        self.loading.set("")
-        self.Loading = tk.Label(master, textvariable = self.loading).grid(row=22,columnspan=4)
+        self.OUT.grid(row=19, columnspan=4)
+        
+        self.L_outfile = StringVar()
+        self.L_outfile.set("Add to File:")
+        self.L_OutFile = tk.Label(master, textvariable = self.L_outfile).grid(row=20,columnspan=4)
         
         #Disable inactive buttons
         self.activated = 0
@@ -301,7 +297,7 @@ class Application(tk.Frame):
         
         FeatureVector, df = fe.Radiomics(Image, Mask, CHECK_BOX)
         
-        if self.make_excel.get() == 1:        
+        if self.many_excel.get() == 1:        
             if self.out_directory == 'a':
             
                 file = "output.xlsx"
@@ -394,8 +390,9 @@ class Application(tk.Frame):
             if self.many_excel.get() == 1:
                 
                 file = str(folder_name + StudyDate + "_output.xlsx")
+                file = os.path.join(self.out_directory, file)
                 df.to_excel(file)
-                print("Features have been saved to " + file + "\n")
+                print("Features have been saved to " + file)
                    
             if self.one_excel.get() == 1:
                 if counter == 0:
@@ -414,6 +411,34 @@ class Application(tk.Frame):
             
                 Data_Frame = fe.ExcelFile(df, Data_Frame, folder_name, StudyDate) #adding output data to massive data file 
             
+            if self.add_excel.get() == 1:
+            
+                if self.excel_file == 'a':
+                
+                    print('Please select file to append data to')
+                    self.loading.set('Please select file to append data to and try again')
+            
+                else:   
+                    
+                    print('Adding to existing excel file')
+                
+                    #old_df = pd.read_excel(self.excel_file, index_col=0) 
+                    old_df = openpyxl.load_workbook(self.excel_file)
+                
+                    old_df = old_df['Sheet1']
+                
+                    data = old_df.values
+                    columns = next(data)[0:]
+                
+                    old_df = pd.DataFrame(data,columns=columns)
+                
+                    old_df.drop(old_df.columns[[0]], axis=1, inplace=True)
+                
+                    ID = folder_name               
+                
+                    new_file = fe.ExcelFile(df, old_df, ID, StudyDate)
+                    
+                    new_file.to_excel(self.excel_file) 
             
             counter += 1
 
@@ -439,13 +464,22 @@ class Application(tk.Frame):
         
         self.excel_file = fd.askopenfilename()
         
-        self.loading.set("Saving to " + self.excel_file)
+        xdir = str(self.excel_file)
+        
+        if len(xdir) > 40:
+            xdir = xdir[-40:]
+                
+        self.L_outfile.set("Add to File: ... " + xdir)
         
     def OutputFolder(self):
         
         self.out_directory = fd.askdirectory()
+        pdir = str(self.out_directory)
         
-        self.loading.set("Saving to " + self.out_directory)
+        if len(pdir) > 40:
+            pdir = pdir[-40:]
+        
+        self.loading.set("Output Directory:  ... " + pdir)
     
     def QUIT(self):
         
