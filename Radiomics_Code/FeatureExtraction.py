@@ -157,7 +157,7 @@ def Viewer(Mask, folder_name, directory):
     fig = plt.figure(figsize=(9, 9))
     ax = fig.add_subplot(111, projection='3d')
     
-    title = "Segmented Lungs of " + folder_name + " in 3D"
+    title = "Segmented Lungs of " + folder_name +  " Week 12 in 3D"
     ax.set_title(title, fontsize=15)
     
     mesh = Poly3DCollection(verts[faces], alpha=0.5)
