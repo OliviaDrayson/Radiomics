@@ -437,7 +437,7 @@ class Application(tk.Frame):
             Mask = fe.Segment4(IMAGE)
             
             #Generates 3D Plot and Saves to Output Directory
-            fe.Viewer(Mask, folder_name, self.out_directory, self.BatchEntry.get())
+            fe.Viewer(Mask, folder_name, self.out_directory, self.BatchName.get())
                 
             print("Calculating Features for: " + folder_name)
     
