@@ -44,10 +44,10 @@ class Application(tk.Frame):
         master.title("3D Segmentation and Feature Extraction")
         
         #FRAMES
-        
         style = 'flat'
         style2 = 'groove'
         
+        #Section Frames
         self.BFrame = tk.LabelFrame(master, width = 400, height = 120, relief=style).grid(row=0, rowspan=4, columnspan=4)
         self.SFrame = tk.LabelFrame(master, width = 400, height = 190, relief=style).grid(row=4, rowspan=6, columnspan=4)
         self.RFrame = tk.LabelFrame(master, width = 400, height = 170, relief=style).grid(row=10, rowspan=5, columnspan=4)
@@ -55,7 +55,7 @@ class Application(tk.Frame):
         
         #Large Frames
         self.MainFrame = tk.LabelFrame(master, width = 400, height = 760, relief='groove').grid(row=0, rowspan=24, column=0, columnspan=4)
-        self.CFrame = tk.LabelFrame(master, width = 670, height = 760, relief='groove').grid(row=0, rowspan=24, column=4, columnspan=6)
+        self.CFrame = tk.LabelFrame(master, width = 760, height = 760, relief='groove').grid(row=0, rowspan=24, column=4, columnspan=6)
         
         #Title Frames
         self.B_Title = tk.LabelFrame(master, width = 400, height = 30, relief=style2, bg="#C0C0C0").grid(row=0, rowspan=1, columnspan=4)
@@ -64,11 +64,11 @@ class Application(tk.Frame):
         self.O_Title = tk.LabelFrame(master, width = 400, height = 30, relief=style2, bg = "#C0C0C0").grid(row=15, rowspan=1, columnspan=4)
         
         # QUIT BUTTON
-        
+    
         self.Quit = tk.Button(master, text="QUIT", command=self.QUIT).grid(row=24, column=9, sticky='E')
         self.Name = tk.Label(master, text="by Olivia Drayson - drayson.o@mac.com").grid(row=24,column=8, sticky='E')
         
-        self.canvas = tk.Canvas(self.CFrame, bg ="white", width=650, height=740)
+        self.canvas = tk.Canvas(self.CFrame, bg ="white", width=740, height=740)
         self.canvas.grid(row = 0, column = 4, rowspan=24, columnspan=6)
         
         # BATCH MODE FRAME
@@ -76,14 +76,19 @@ class Application(tk.Frame):
         self.BatchLabel = tk.Label(self.B_Title, text = "Batch Mode",font='Calibri 13 bold', bg="#C0C0C0").grid(row=0,columnspan=4)
         
         self.Batch = tk.Button(self.BFrame, text="Choose Images Folder", command=self.BatchMode)
-        self.Batch.grid(row=1,columnspan=4)
+        self.Batch.grid(row=1,column=0, columnspan=2)
         
         self.in_dir = StringVar()
         self.in_dir.set("Input folder: ")
         self.Label_Batch = tk.Label(self.BFrame, textvariable = self.in_dir, fg ="blue").grid(row = 2, columnspan=4)
         
-        self.Batch_Run = tk.Button(self.BFrame, text = "Run", bg = "green", command = self.BatchRun)
-        self.Batch_Run.grid(row = 3, columnspan = 4)
+        self.Batch_Run = tk.Button(self.BFrame, text = "Run", bg='green', command = self.BatchRun)
+        self.Batch_Run.grid(row = 1, column = 2, columnspan = 2)
+        
+        self.BatchName = StringVar()
+        self.BatchName.set("")
+        self.EntryLabel = tk.Label(self.BFrame, text = "Enter Batch Name:").grid(row=3, column=0, columnspan = 2)
+        self.BatchEntry = tk.Entry(self.BFrame, textvariable = self.BatchName).grid(row = 3, column = 2)
         
         # SINGLE MODE FRAME
         
@@ -383,13 +388,15 @@ class Application(tk.Frame):
         self.batch_activated = 1
         self.Batch_Run["state"] = "normal"
         
+        BatchName = self.BatchName.get()
+        
         #Get Image Directory
         self.bdirectory = fd.askdirectory()
         
         if self.out_directory == 'a': #If output directory is not defined
             self.out_directory = self.bdirectory
             
-        print('Batch Run Has Been Configured:')
+        print(BatchName + ' Batch Run Has Been Configured:')
         print('Input Image Directory: ' + self.bdirectory)
         print('Output Plot Directory: ' + self.out_directory)
         
@@ -430,7 +437,7 @@ class Application(tk.Frame):
             Mask = fe.Segment4(IMAGE)
             
             #Generates 3D Plot and Saves to Output Directory
-            fe.Viewer(Mask, folder_name, self.out_directory)
+            fe.Viewer(Mask, folder_name, self.out_directory, self.BatchEntry.get())
                 
             print("Calculating Features for: " + folder_name)
     
