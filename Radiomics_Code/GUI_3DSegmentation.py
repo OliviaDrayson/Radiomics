@@ -209,8 +209,8 @@ class Application(tk.Frame):
         IMAGE = fe.GetImage(self.IMG3D, self.Chosen)
 
         #RESCALING IMAGE
-        x_factor = 650/IMAGE.shape[0]
-        y_factor = 650/IMAGE.shape[1]
+        x_factor = 740/IMAGE.shape[0]
+        y_factor = 740/IMAGE.shape[1]
         
         if x_factor < y_factor:
             IMAGE = rescale(IMAGE, x_factor, anti_aliasing=False)
@@ -218,8 +218,8 @@ class Application(tk.Frame):
             IMAGE = rescale(IMAGE, y_factor, anti_aliasing=False)
         
         Width, Height = IMAGE.shape
-        x_start = int(round((650 - Width)/2))
-        y_start = int(round((650 - Height)/2))
+        x_start = int(round((740 - Width)/2))
+        y_start = int(round((740 - Height)/2))
         IMAGE = fe.convert(IMAGE, 0, 255, np.uint8)
 
         im = Image.fromarray(IMAGE) #Pillow
@@ -240,8 +240,8 @@ class Application(tk.Frame):
         IMAGE = fe.GetImage(Segmentation, self.Chosen)
         
         #RESCALING IMAGE
-        x_factor = 650/IMAGE.shape[0]
-        y_factor = 650/IMAGE.shape[1]
+        x_factor = 740/IMAGE.shape[0]
+        y_factor = 740/IMAGE.shape[1]
         
         if x_factor < y_factor:
             IMAGE = rescale(IMAGE, x_factor, anti_aliasing=False)
@@ -249,8 +249,8 @@ class Application(tk.Frame):
             IMAGE = rescale(IMAGE, y_factor, anti_aliasing=False)
         
         Width, Height = IMAGE.shape
-        self.x_start = int(round((650 - Width)/2))
-        self.y_start = int(round((650 - Height)/2))
+        self.x_start = int(round((740 - Width)/2))
+        self.y_start = int(round((740 - Height)/2))
         IMAGE = fe.convert(IMAGE, 0, 255, np.uint8)
 
         im = Image.fromarray(IMAGE) #Pillow
@@ -264,7 +264,7 @@ class Application(tk.Frame):
     def Viewer(self):
         mesh = fe.MeshGeneration(self.Mask)     
         
-        figure = Figure(figsize=(9, 9))
+        figure = Figure(figsize=(7.5, 7.5))
         ax= figure.add_subplot(1, 1, 1, projection='3d')
 
         ax.add_collection3d(mesh)

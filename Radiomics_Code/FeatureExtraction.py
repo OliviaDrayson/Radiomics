@@ -8,8 +8,8 @@ Created on Thu Jan 28 18:12:36 2021
 
 from __future__ import print_function
 import logging
-from radiomics import featureextractor
 import radiomics
+from radiomics import featureextractor
 import pandas as pd
 import glob
 import pydicom as dicom
