@@ -8,8 +8,7 @@ Created on Thu Jan 28 18:12:36 2021
 
 from __future__ import print_function
 import logging
-import six
-from radiomics import featureextractor, getFeatureClasses
+from radiomics import featureextractor
 import radiomics
 import pandas as pd
 import glob

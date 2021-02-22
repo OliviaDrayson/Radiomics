@@ -22,20 +22,12 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
 
-import matplotlib as plt
-
 import SimpleITK as sitk
 import math
 import glob
 
 import os
 import openpyxl
-
-import scipy
-from scipy import ndimage
-
-from skimage import measure
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -88,7 +80,7 @@ class Application(tk.Frame):
         self.BatchName = StringVar()
         self.BatchName.set("")
         self.EntryLabel = tk.Label(self.BFrame, text = "Enter Batch Name:").grid(row=3, column=0, columnspan = 2)
-        self.BatchEntry = tk.Entry(self.BFrame, textvariable = self.BatchName).grid(row = 3, column = 2)
+        self.BatchEntry = tk.Entry(self.BFrame, textvariable = self.BatchName, width=15).grid(row = 3, column = 2, columnspan=2)
         
         # SINGLE MODE FRAME
         
@@ -126,7 +118,7 @@ class Application(tk.Frame):
         self.firstorder = IntVar()
         self.firstorder.set(1)
         self.FirstOrder = tk.Checkbutton(self.RFrame, text = "First Order", variable=self.firstorder)
-        self.FirstOrder.grid(row=11, column=1, sticky='W')
+        self.FirstOrder.grid(row=11, column=1)
         
         self.glcm = IntVar()
         self.glcm.set(1)
@@ -135,8 +127,8 @@ class Application(tk.Frame):
         
         self.shape = IntVar()
         self.shape.set(1)
-        self.Shape = tk.Checkbutton(self.RFrame, text = "Shape", variable=self.shape)
-        self.Shape.grid(row=12, column=1, sticky='W')
+        self.Shape = tk.Checkbutton(self.RFrame, text = "Shape        ", variable=self.shape)
+        self.Shape.grid(row=12, column=1)
         
         self.glrlm = IntVar()
         self.glrlm.set(1)
@@ -145,8 +137,8 @@ class Application(tk.Frame):
         
         self.glszm = IntVar()
         self.glszm.set(1)
-        self.Glszm = tk.Checkbutton(self.RFrame, text = "GLSZM", variable=self.glszm)
-        self.Glszm.grid(row=13, column=1, sticky='W')
+        self.Glszm = tk.Checkbutton(self.RFrame, text = "GLSZM      ", variable=self.glszm)
+        self.Glszm.grid(row=13, column=1)
         
         self.wavelet = IntVar()
         self.wavelet.set(1)
