@@ -25,13 +25,13 @@ I recommend setting up an anaconda virtual environment for running this applicat
 
 1. Install [Anaconda](https://www.anaconda.com/products/individual)
 
-2. From the terminal, enter the directory where you want to save the GUI application:
+2. From the terminal, enter the directory where you want to save the GUI application. For example: 
 
-`<$ conda create -n myenv python=3.6>`
+`<$ cd ./Desktop/Radiomics`
 
 3. Clone this repository.
 
-4. Create a new virtual environment with python version 3.6. Proceed by typing y when prompted. Replace 'myenv' below with the preferred name of the virtual env.
+4. Create a new virtual environment with python version 3.6. Proceed by typing 'y' when prompted. Replace 'myenv' below with the preferred name of the virtual env.
 
 `<conda create -n myenv python=3.6>`
 
