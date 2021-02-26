@@ -6,12 +6,11 @@
 
 ## Information for Use
 
-This is a GUI for analysing CT scans of lungs. Requires python and at least one DICOM image. Only works on DICOM images for now. 
+This is a GUI for analysing CT scans of lungs. Runs on python and requires at least one DICOM image. Only works on DICOM images for now. 
 
 Segmentation is done using thresholding between -900 and -200 HU. This is currently not changeable. 
 
-Extraction of radiomic features is done using the library '
-***pyradiomics**. 
+Extraction of radiomic features is done using the library [pyradiomics](https://pyradiomics.readthedocs.io/en/latest/). 
 Wavelet filtering optional and user can choose to include or exclude first order, glcm, shape, glrlm and glszm features. 
 
 Output can be saved to excel files. User has option between creating a file for a single extraction or combining results from multiple images in a single excel file. 
@@ -24,34 +23,32 @@ Single image mode allows for better viewing of the segmentation both a 2D slice 
 
 I recommend setting up an anaconda virtual environment for running this application. This is predominantly because the pyradiomics software depends on specific versions of some python libraries.
 
-1. Install Anaconda
+1. Install [Anaconda](https://www.anaconda.com/products/individual)
 
-Visit: [Anaconda site](https://www.anaconda.com/products/individual) to install anaconda for your machine.
-
-2. Enter the directory where you want to save the GUI application.
+2. From the terminal, enter the directory where you want to save the GUI application.
 
 3. Clone this repository.
 
-4. Create a new virtual environment with python version 3.6. Proceed by typing y when prompted. Replace 'myenv' below with the preferred name of the virtual env.
+4. Create a new virtual environment with python version 3.6. Proceed by typing 'y' when prompted. Replace 'myenv' below with the preferred name of the virtual env.
 
-`<conda create -n myenv python=3.6>`
+`conda create -n myenv python=3.6`
 
 5. Activate the environment: 
 
-`<conda activate myenv>`
+`conda activate myenv`
 
 6. Install the requirements file:
 
-`<pip install -r requirements.txt>`
+`pip install -r requirements.txt`
 
 7. Install the pyradiomics library:
 
-`<python -m pip install pyradiomics>`
+`python -m pip install pyradiomics`
 
 Now the virual environment is set up and you can run the application!
-Enter `<python GUI_3DSegmentation.py>` in your terminal to run.
+Enter `python GUI_3DSegmentation.py` in your terminal to run.
 
-Each time you want to use the application, activate the environment, enter the directory and run the application script. 
+Each time you want to use the application simply activate the environment (step 5), enter the directory and run the application script. 
 
 ## How to Use
 
