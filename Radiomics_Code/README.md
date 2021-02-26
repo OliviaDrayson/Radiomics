@@ -25,30 +25,28 @@ I recommend setting up an anaconda virtual environment for running this applicat
 
 1. Install [Anaconda](https://www.anaconda.com/products/individual)
 
-2. From the terminal, enter the directory where you want to save the GUI application. For example: 
-
-`<$ cd ./Desktop/Radiomics`
+2. From the terminal, enter the directory where you want to save the GUI application.
 
 3. Clone this repository.
 
 4. Create a new virtual environment with python version 3.6. Proceed by typing 'y' when prompted. Replace 'myenv' below with the preferred name of the virtual env.
 
-`<conda create -n myenv python=3.6>`
+`conda create -n myenv python=3.6`
 
 5. Activate the environment: 
 
-`<conda activate myenv>`
+`conda activate myenv`
 
 6. Install the requirements file:
 
-`<pip install -r requirements.txt>`
+`pip install -r requirements.txt`
 
 7. Install the pyradiomics library:
 
-`<python -m pip install pyradiomics>`
+`python -m pip install pyradiomics`
 
 Now the virual environment is set up and you can run the application!
-Enter `<python GUI_3DSegmentation.py>` in your terminal to run.
+Enter `python GUI_3DSegmentation.py` in your terminal to run.
 
 Each time you want to use the application simple activate the environment (step 5), enter the directory and run the application script. 
 
