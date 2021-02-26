@@ -48,7 +48,7 @@ I recommend setting up an anaconda virtual environment for running this applicat
 Now the virual environment is set up and you can run the application!
 Enter `python GUI_3DSegmentation.py` in your terminal to run.
 
-Each time you want to use the application simple activate the environment (step 5), enter the directory and run the application script. 
+Each time you want to use the application simply activate the environment (step 5), enter the directory and run the application script. 
 
 ## How to Use
 
